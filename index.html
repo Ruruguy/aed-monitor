@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>AED 模擬器 - 專業急救推廣教育工具</title>
+  <meta name="description" content="專為CPR與AED急救教育推廣設計的手機直立式AED模擬器，具備完整的開貼插電流程、中文語音導引、110BPM節拍器與自訂電擊決策後台。">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="theme-red">
+
+  <!-- Audio Policy Gate Overlay -->
+  <div id="audioGate" class="audio-gate">
+    <div class="gate-icon">⚡</div>
+    <h1 class="gate-title">AED 模擬教學系統</h1>
+    <p class="gate-desc">
+      歡迎使用 CPR + AED 模擬器網頁。<br>
+      為配合行動裝置（iOS/Android）瀏覽器安全政策，請點擊下方按鈕以啟用模擬器語音與音效系統。
+    </p>
+    <button id="btnStartApp" class="btn-start-app">進入模擬器</button>
+  </div>
+
+  <div class="app-container">
+    <!-- Phone Notch -->
+    <div class="device-notch"></div>
+
+    <!-- Floating Settings Gear -->
+    <div id="settingsTrigger" class="settings-trigger" title="開啟後台設定">
+      <svg viewBox="0 0 24 24">
+        <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+      </svg>
+    </div>
+
+    <!-- Simulator Body Layout -->
+    <div class="simulator-layout">
+      
+      <!-- AED Hardware (Upper Container) -->
+      <div class="aed-hardware">
+        <!-- Speaker Grid Mockup -->
+        <div class="speaker-grille">
+          <div class="speaker-dot"></div><div class="speaker-dot"></div><div class="speaker-dot"></div><div class="speaker-dot"></div><div class="speaker-dot"></div><div class="speaker-dot"></div>
+          <div class="speaker-dot"></div><div class="speaker-dot"></div><div class="speaker-dot"></div><div class="speaker-dot"></div><div class="speaker-dot"></div><div class="speaker-dot"></div>
+          <div class="speaker-dot"></div><div class="speaker-dot"></div><div class="speaker-dot"></div><div class="speaker-dot"></div><div class="speaker-dot"></div><div class="speaker-dot"></div>
+        </div>
+
+        <!-- Status LED -->
+        <div class="status-indicator-led">
+          <span>STATUS</span>
+          <div id="statusLed" class="status-led-dot blink-green"></div>
+        </div>
+
+        <!-- Digital LCD Screen -->
+        <div class="aed-screen" id="aedScreen">
+          <div class="screen-glass"></div>
+          
+          <div class="screen-header">
+            <span class="screen-title" id="screenTitle">AED TRAINER</span>
+            <span class="screen-timer" id="screenTimer">00:00</span>
+          </div>
+          
+          <div class="screen-main-msg">
+            <div class="instruction-text" id="instructionMain">系統關機中</div>
+            <div class="instruction-subtext" id="instructionSub">請按下電源鈕啟動</div>
+          </div>
+
+          <!-- Dynamic Waveform Area -->
+          <div class="waveform-container">
+            <canvas id="ecgCanvas" class="ecg-canvas"></canvas>
+          </div>
+
+          <!-- CPR 110BPM Compression Visualizer Overlay -->
+          <div class="compression-visualizer" id="compressionVisualizer">
+            <div class="compression-circle-container">
+              <div class="compression-ring" id="compressionRing"></div>
+              <div class="compression-hands" id="compressionHands">
+                <img src="大佛ＣＰＲ.png" alt="大佛CPR">
+              </div>
+            </div>
+            <div class="compression-count" id="compressionCount">0</div>
+            <div style="font-size: 0.65rem; color: #a5d6a7; margin-top: 2px;">持續胸外按壓 (110 BPM)</div>
+          </div>
+        </div>
+
+        <!-- Hardware Buttons Area -->
+        <div class="hardware-controls">
+          <!-- Power Button (Green 1) -->
+          <div class="btn-power-wrapper">
+            <button id="btnPower" class="btn-power" aria-label="電源鍵">
+              <svg viewBox="0 0 24 24">
+                <path d="M13 3h-2v10h2V3zm4.83 2.17l-1.42 1.42C18.43 8.35 19 10.11 19 12c0 3.87-3.13 7-7 7s-7-3.13-7-7c0-1.89.57-3.65 1.58-5.41L5.17 5.17C3.23 7.11 2 9.91 2 13c0 5.52 4.48 10 10 10s10-4.48 10-10c0-3.09-1.23-5.89-3.17-7.83z"/>
+              </svg>
+            </button>
+            <span class="btn-label">1. ON / OFF</span>
+          </div>
+
+          <!-- Shock Button (Orange 3) -->
+          <div class="btn-shock-wrapper">
+            <div class="btn-shock-outer">
+              <button id="btnShock" class="btn-shock" aria-label="電擊鈕">
+                <svg viewBox="0 0 24 24">
+                  <path d="M11.5 2L3 14h8v8l8.5-12h-8V2z"/>
+                </svg>
+              </button>
+            </div>
+            <span class="btn-label" id="shockLabel">3. SHOCK</span>
+          </div>
+        </div>
+
+        <!-- Cable Connection Port Socket (Hardware 2) -->
+        <div class="socket-connector-area">
+          <div class="socket-wrapper">
+            <div id="cableSocket" class="socket-port" title="電擊貼片插座"></div>
+            <span class="btn-label" style="font-size: 0.6rem;">2. 插座</span>
+          </div>
+          
+          <!-- Plug connector cable that plugs in -->
+          <div id="cablePlug" class="plug-connector" title="貼片連接插頭">
+            <span>PLUG</span>
+          </div>
+        </div>
+
+      </div> <!-- End AED Hardware -->
+
+      <!-- Patient Torso Card (Lower Container) -->
+      <div class="patient-torso-card">
+        <div class="torso-title">
+          <span>模擬病患胸部貼片區</span>
+          <span style="font-size: 0.65rem; color: #10b981;" id="padsStatusText">貼片未貼上</span>
+        </div>
+
+        <!-- Interactive Torso Drawing Area -->
+        <div class="chest-canvas-area" id="chestCanvasArea">
+          <!-- Bare Chest Image Graphic -->
+          <img src="ＣＰＲ安尼.png" class="chest-image" alt="模擬病患胸部">
+
+          <!-- Pad Targets (Visual indicators where they go) -->
+          <div id="targetClavicle" class="pad-target target-right-clavicle">右胸上方</div>
+          <div id="targetRibs" class="pad-target target-left-ribs">左肋下方</div>
+
+          <!-- Placed pads (Will appear when applied) -->
+          <div id="placedPadClavicle" class="placed-pad target-right-clavicle" style="display: none;">
+            <span class="placed-pad-label">右胸上方</span>
+            <div class="placed-pad-graphic">⚡</div>
+          </div>
+          <div id="placedPadRibs" class="placed-pad target-left-ribs" style="display: none;">
+            <span class="placed-pad-label">左肋下方</span>
+            <div class="placed-pad-graphic">⚡</div>
+          </div>
+        </div>
+
+        <!-- Draggable Electrodes Deck -->
+        <div class="electrodes-deck" id="electrodesDeck">
+          <button id="deckPadClavicle" class="deck-pad">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <rect x="4" y="2" width="16" height="20" rx="3" fill="#fff" stroke="#9ca3af" stroke-width="2"/>
+              <circle cx="12" cy="12" r="4" fill="#60a5fa"/>
+            </svg>
+            右胸貼片
+          </button>
+          <button id="deckPadRibs" class="deck-pad">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <rect x="4" y="2" width="16" height="20" rx="3" fill="#fff" stroke="#9ca3af" stroke-width="2"/>
+              <circle cx="12" cy="12" r="4" fill="#60a5fa"/>
+            </svg>
+            左肋貼片
+          </button>
+        </div>
+
+      </div> <!-- End Torso Card -->
+
+    </div> <!-- End Simulator Layout -->
+
+    <!-- Settings Drawer (後台設定) -->
+    <div id="settingsPanel" class="settings-panel">
+      <div class="settings-header">
+        <h2 class="settings-title">AED 講師控制後台</h2>
+        <button id="settingsClose" class="settings-close">&times;</button>
+      </div>
+      
+      <div class="settings-content">
+        <!-- Theme Setting -->
+        <div class="settings-section">
+          <span class="section-label">AED 外觀配色</span>
+          <div class="theme-selector-grid">
+            <button class="theme-btn active" data-theme="red">救援紅</button>
+            <button class="theme-btn" data-theme="green">軟檸綠</button>
+            <button class="theme-btn" data-theme="blue">經典藍</button>
+          </div>
+        </div>
+
+        <!-- Metronome Setting -->
+        <div class="settings-section">
+          <span class="section-label">節拍器設定</span>
+          <div class="control-group">
+            <span class="control-label">節拍器音效</span>
+            <select id="selectMetronomeSound" class="select-input">
+              <option value="beep">電子嗶聲 (Beep)</option>
+              <option value="woodblock">木魚木槌聲 (Woodblock)</option>
+              <option value="voice">語音報數 (1,2,3...)</option>
+              <option value="none">靜音</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Shock Advisor Configurer (電擊決策 sequence) -->
+        <div class="settings-section">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span class="section-label">電擊決策時程設定</span>
+            <button id="btnAddCycle" class="btn-override btn-override-secondary" style="padding: 2px 8px; font-size: 0.65rem;">+ 增加循環</button>
+          </div>
+          <div class="cycle-sequence-list" id="cycleSequenceList">
+            <!-- Dynamically populated -->
+          </div>
+          <p style="font-size: 0.65rem; color: #9ca3af; line-height: 1.3;">
+            開啟開關代表「建議電擊」，關閉開關代表「不建議電擊」。每循環代表 2 分鐘。
+          </p>
+        </div>
+
+        <!-- Manual Instructor Overrides -->
+        <div class="settings-section">
+          <span class="section-label">講師手動強制指令 (立即生效)</span>
+          <div class="override-grid">
+            <button id="btnForceShock" class="btn-override btn-override-primary">強制電擊流程</button>
+            <button id="btnForceNoShock" class="btn-override btn-override-secondary">強制不電擊流程</button>
+            <button id="btnFastForward" class="btn-override btn-override-neutral">跳過CPR (快轉2m)</button>
+            <button id="btnPauseResume" class="btn-override btn-override-neutral">暫停 / 繼續</button>
+          </div>
+          <div style="margin-top: 5px;">
+            <button id="btnResetSimulation" class="btn-override btn-override-danger" style="width: 100%;">重設模擬器</button>
+          </div>
+        </div>
+
+        <div style="font-size: 0.65rem; text-align: center; color: #6b7280; margin-top: 15px;">
+          AED 模擬教學網頁 v1.0.0
+        </div>
+      </div>
+    </div> <!-- End Settings Drawer -->
+
+    <!-- Toast Notifications Area -->
+    <div id="toastContainer" class="toast-container"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
